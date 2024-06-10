@@ -31,6 +31,7 @@
             <tr>
                 <th>HSCODE</th>
                 <th>Description</th>
+                <th>Score</th>
             </tr>
         </thead>
         <tbody id="resultsBody">
@@ -58,7 +59,7 @@
 
     data.forEach(result => {
         const row = document.createElement('tr');
-        row.innerHTML = `<td>${result.hscode}</td><td>${result.description}</td>`;
+        row.innerHTML = `<td>${result.hscode}</td><td>${result.description}</td><td>${result.score}</td>`;
         resultsBody.appendChild(row);
     });
 });

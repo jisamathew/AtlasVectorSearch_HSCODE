@@ -36,6 +36,27 @@ async function generate_embedding(text) {
         }
     }
 }
+//call thhis function to create embedding for description 
+async function createEmbeddings() {
+    try {
+        await client.connect();
+        const database = client.db('sample_hscode'); // Your database name
+        const collection = database.collection('hscodes'); // Your collection name
+
+        const cursor = collection.find({ 'description': { "$exists": true } }).limit(50);
+        
+        while (await cursor.hasNext()) {
+            const doc = await cursor.next();
+            const embedding = await generate_embedding(doc.description);
+            doc.description_embedding_hf = embedding;
+            await collection.replaceOne({ '_id': doc._id }, doc);
+        }
+    } catch (error) {
+        console.error(error);
+    } finally {
+        await client.close();
+    }
+}
 
 
 app.get("/",(req,res) => {
@@ -58,7 +79,17 @@ app.post('/search', async (req, res) => {
                 numCandidates: 100,
                 limit: 10,
                 index: "DescriptionSemanticSearch"
-            }}
+            }},
+            {
+          
+              "$project": {
+                "_id":0,
+                "hscode":1,
+                "description":1,
+                "score": { "$meta": "vectorSearchScore" }
+              }
+          
+            }
         ]).toArray();
 
         res.send(results);
@@ -102,3 +133,5 @@ app.listen(process.env.PORT,function(){
     // 3000
     console.log("server is running on" + process.env.PORT);
 })
+// Call createEmbeddings function to create embeddings
+// createEmbeddings();
